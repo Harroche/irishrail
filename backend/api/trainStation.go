@@ -1,9 +1,9 @@
 package api
 
 import (
-	"bufio"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -33,19 +33,18 @@ func GetDartStations() (*ArrayOfObjStation, error) {
 }
 
 func callAPIStations() ([]byte, error) {
-	res, err := http.Get(TRAIN_STATION_GET)
+	res, err := http.Get(TRAIN_STATIONS_GET)
 	if err != nil {
 		return nil, fmt.Errorf("failed to in get operation for %q: %w", TRAIN_STATION_GET, err)
 	}
-	scanner := bufio.NewScanner(res.Body)
-	var data string
-	for scanner.Scan() {
-		data += scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
 		return nil, err
 	}
-	return []byte(data), nil
+	return data, nil
 }
 
 func xmlToStations(xmlString []byte) (*ArrayOfObjStation, error) {
