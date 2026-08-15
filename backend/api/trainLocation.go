@@ -1,9 +1,9 @@
 package api
 
 import (
-	"bufio"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -38,15 +38,14 @@ func callTrainsData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to call get on %q: %w", TRAINS_LOCATION_GET, err)
 	}
-	scanner := bufio.NewScanner(res.Body)
-	var data string
-	for scanner.Scan() {
-		data += scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
 		return nil, err
 	}
-	return []byte(data), nil
+	return data, nil
 }
 
 func xmlToTrain(data []byte) (*ArrayOfObjTrainPositions, error) {
