@@ -16,7 +16,6 @@ func main() {
 
 	fmt.Println("Server is running localhost:12345")
 	log.Fatal(http.ListenAndServe(":12345", nil))
-
 }
 
 // "/irishrail/stations"
