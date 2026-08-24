@@ -19,19 +19,43 @@ def main() -> None:
     ax.add_image(osm,10)
     lonsStation = []
     latsStation = []
+    lonsTrains = []
+    latsTrains = []
     stations =  api.GetAllStations()
     for station in stations:
         lonsStation.append(station.StationLongitude)
         latsStation.append(station.StationLatitude)
     
-    dots, = ax.plot(
+    dots_station, = ax.plot(
         lonsStation, latsStation, 
         marker='s', color='green', linestyle='None', markersize=3, 
         transform=ccrs.PlateCarree()
     )
 
+
+    dots_trains, = ax.plot(
+        lonsTrains,latsTrains,
+        marker= 'o', color = 'red', linestyle='None', markersize = 4,
+        transform=ccrs.PlateCarree()
+    )
+
+    pl.ion()
     pl.show()
             
 
+
+    try:
+        while pl.fignum_exists(fig.number): 
+            trains = api.GetAllTrainsLiveLocation()
+            lonsTrains.clear()
+            latsTrains.clear()
+            for train in trains:
+                lonsTrains.append(train.TrainLongitude)
+                latsTrains.append(train.TrainLatitude)
+            dots_trains.set_data(lonsTrains,latsTrains)
+            fig.canvas.draw_idle()  
+            pl.pause(.5)           # Pause .5 seconds while keeping GUI responsive
+    except KeyboardInterrupt:
+        pass
 if __name__ == "__main__":
    main()
