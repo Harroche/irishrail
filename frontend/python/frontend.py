@@ -6,6 +6,7 @@ import cartopy.crs as ccrs
 import cartopy.io.img_tiles as cimgt
 
 
+NORTH = "Northbound"
 
 def main() -> None:
 
@@ -19,23 +20,26 @@ def main() -> None:
     ax.add_image(osm,10)
     lonsStation = []
     latsStation = []
-    lonsTrains = []
-    latsTrains = []
     stations =  api.GetAllStations()
     for station in stations:
         lonsStation.append(station.StationLongitude)
         latsStation.append(station.StationLatitude)
     
-    dots_station, = ax.plot(
+    ax.plot(
         lonsStation, latsStation, 
-        marker='s', color='green', linestyle='None', markersize=3, 
+        marker='s', color='black', linestyle='None', markersize=3, 
         transform=ccrs.PlateCarree()
     )
 
 
-    dots_trains, = ax.plot(
-        lonsTrains,latsTrains,
+    dots_trains_n, = ax.plot(
+        [],[],
         marker= 'o', color = 'red', linestyle='None', markersize = 4,
+        transform=ccrs.PlateCarree()
+    )
+    dots_trains_s, = ax.plot(
+        [],[],
+        marker= 'o', color = 'green', linestyle='None', markersize = 4,
         transform=ccrs.PlateCarree()
     )
 
@@ -43,19 +47,31 @@ def main() -> None:
     pl.show()
             
 
-
     try:
         while pl.fignum_exists(fig.number): 
-            trains = api.GetAllTrainsLiveLocation()
-            lonsTrains.clear()
-            latsTrains.clear()
-            for train in trains:
-                lonsTrains.append(train.TrainLongitude)
-                latsTrains.append(train.TrainLatitude)
-            dots_trains.set_data(lonsTrains,latsTrains)
+            trains = getTrains()
+            dots_trains_n.set_data(trains[0],trains[1])
+            dots_trains_s.set_data(trains[2],trains[3])
             fig.canvas.draw_idle()  
             pl.pause(.5)           # Pause .5 seconds while keeping GUI responsive
     except KeyboardInterrupt:
         pass
+
+def getTrains() -> list[list[float]]:
+    trains = api.GetAllTrainsLiveLocation()
+    nLong = []
+    nLat = []
+    sLong = []
+    sLat = []
+    for train in trains:
+        if train.Direction == NORTH:
+            nLong.append(train.TrainLongitude)
+            nLat.append(train.TrainLatitude)
+        else:
+            sLong.append(train.TrainLongitude)
+            sLat.append(train.TrainLatitude)
+    return [nLong,nLat,sLong,sLat]
+
+
 if __name__ == "__main__":
    main()
